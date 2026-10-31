@@ -81,7 +81,6 @@ public class ConsoleApp {
     public void run() {
         title("Core Order POS");
         out.println("พนักงาน A | รหัส A001");
-        out.println("ขายสินค้า: เลือก 1 → เลือกลูกค้า → เลือกไอศกรีม/ขนาด/รส → ชำระเงิน");
         alerts();
         try {
             while (true) {
