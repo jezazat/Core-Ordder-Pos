@@ -222,21 +222,22 @@ public class PosTests {
         });
         test("console malformed menu/quantity/money recovery", () -> {
             Fixture f = new Fixture();
-            String output = console(f.s, "abc\n-1\n9\n1\n0\n1\n1\n-2\nx\n1\n4\n1\nno\n-10\n35.001\n35\n1\n0\n");
-            check(output.contains("กรุณากรอกจำนวนเต็ม") && output.contains("กรุณากรอกจำนวนตั้งแต่ 0") && output.contains("ชำระสำเร็จ"), "input recovery");
+            String output = console(f.s, "abc\n-1\n9\n1\n0\n1\n1\n1\n1\n-2\nx\n1\n4\n1\nno\n-10\n35.001\n29\n1\n0\n");
+            check(output.contains("กรุณากรอกจำนวนเต็ม") && output.contains("กรุณากรอกจำนวนตั้งแต่ 0") && output.contains("ชำระสำเร็จ"),
+                    "input recovery flags " + output.contains("กรุณากรอกจำนวนเต็ม") + "/" + output.contains("กรุณากรอกจำนวนตั้งแต่ 0") + "/" + output.contains("ชำระสำเร็จ"));
             check(f.s.summary().paidOrders() == 1, "console checkout missing");
         });
         test("console sale/delivery/Thai receipt and summary", () -> {
             Fixture f = new Fixture();
-            String output = console(f.s, "1\n1\n0812345678\n1\n1\n1\n3\n10\n4\n1\n100\n1\n2\n1\n2\n1\n3\n1\n4\n0\n6\n1\n0\n");
-            check(output.contains("เงินทอน 75.00") && output.contains("ส่งมอบสำเร็จ ได้รับ 2 คะแนน") && output.contains("ยอดขายสุทธิ 25.00"), "end-to-end output");
+            String output = console(f.s, "1\n1\n0812345678\n1\n2\n1\n1\n1\n3\n10\n4\n1\n100\n1\n2\n1\n2\n1\n3\n0\n6\n1\n0\n");
+            check(output.contains("เงินทอน 71.00") && output.contains("ส่งมอบสำเร็จ ได้รับ 2 คะแนน") && output.contains("ยอดขายสุทธิ 29.00"), "end-to-end output");
             check(f.m.points() == 92 && f.s.orders().get(0).status() == Order.Status.DELIVERED, "end-to-end state");
         });
-        test("console unconfirmed QR preserves draft", () -> {
+        test("console unconfirmed QR can discard draft without consuming stock", () -> {
             Fixture f = new Fixture();
-            String output = console(f.s, "1\n0\n1\n1\n1\n4\n2\n0\n0\n0\n");
+            String output = console(f.s, "1\n0\n1\n1\n1\n1\n1\n4\n2\n0\n0\n0\n");
             check(output.contains("ยังไม่ยืนยันชำระ"), "QR simulation label missing");
-            eq(f.ice.usable(DAY), "100"); check(f.s.orders().get(0).payment() == null, "QR mutated");
+            eq(f.ice.usable(DAY), "100"); check(f.s.orders().isEmpty(), "discarded draft remained");
         });
         test("console member registration/edit/search", () -> {
             Fixture f = new Fixture();
@@ -258,6 +259,17 @@ public class PosTests {
             PosSystem first = PosSystem.demo(), second = PosSystem.demo();
             first.register("new", "0898765432");
             check(second.members().size() == 1 && second.orders().isEmpty(), "shared state");
+        });
+        test("discarding an unpaid draft removes order and temporary guest", () -> {
+            Fixture f = new Fixture(); Customer guest = f.s.guest(); Order draft = f.s.employee().receiveEmployeeProduct(f.s, guest);
+            f.s.discardDraft(draft);
+            check(f.s.orders().isEmpty(), "draft remained in order history");
+            rejects(() -> f.s.discardDraft(draft));
+        });
+        test("console zero discards draft and returns to main menu", () -> {
+            Fixture f = new Fixture();
+            String output = console(f.s, "1\n0\n0\n0\n");
+            check(output.contains("ทิ้งออร์เดอร์ที่ยังไม่ชำระ") && f.s.orders().isEmpty(), "draft was retained");
         });
         test("POS state persists with linked member, order and stock objects", () -> {
             try {

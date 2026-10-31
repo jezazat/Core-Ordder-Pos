@@ -169,7 +169,7 @@ public class ModelTests {
         });
         test("console point history and cancellation reason", () -> {
             Fixture f = new Fixture();
-            String output = console(f.s, "1\n1\n0812345678\n1\n1\n1\n3\n10\n4\n1\n25\n1\n2\n1\n5\n1\nเปลี่ยนใจ\n0\n3\n5\n0812345678\n0\n0\n");
+            String output = console(f.s, "1\n1\n0812345678\n1\n2\n1\n1\n1\n3\n10\n4\n1\n30\n1\n2\n1\n4\n1\nเปลี่ยนใจ\n0\n3\n5\n0812345678\n0\n0\n");
             check(output.contains("ประวัติคะแนน") && output.contains("คืน 10") && output.contains("เปลี่ยนใจ") && output.contains("พนักงานเคาน์เตอร์"), "audit console");
             check(f.s.orders().get(0).cancelReason().equals("เปลี่ยนใจ") && f.m.points() == 100, "console refund");
         });

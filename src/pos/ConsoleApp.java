@@ -59,7 +59,12 @@ public class ConsoleApp {
             catch (java.time.format.DateTimeParseException ignored) { out.println("วันที่ไม่ถูกต้อง เช่น 2026-10-07"); }
         }
     }
-    private boolean yes(String prompt) { return number(prompt + " [1=ใช่ / 0=ไม่]", 0, 1) == 1; }
+    private boolean yes(String prompt) {
+        out.println(prompt);
+        out.println("1. ใช่");
+        out.println("0. ไม่ใช่");
+        return number("เลือก", 0, 1) == 1;
+    }
     private String money(BigDecimal amount) { return amount.setScale(2, RoundingMode.HALF_UP).toPlainString(); }
     private void title(String title) {
         out.println(); out.println("============================================================");
@@ -68,7 +73,7 @@ public class ConsoleApp {
     public void run() {
         title("Core Order POS");
         out.println("พนักงาน A | รหัส A001");
-        out.println("ขายสินค้า: เลือก 1 → เลือกลูกค้า → เพิ่มสินค้า → ชำระเงิน");
+        out.println("ขายสินค้า: เลือก 1 → เลือกลูกค้า → เลือกไอศกรีม/ขนาด/รส → ชำระเงิน");
         alerts();
         try {
             while (true) {
@@ -113,17 +118,17 @@ public class ConsoleApp {
             out.println("3. ใช้คะแนนสะสม");
             out.println("4. ชำระเงิน");
             out.println("5. ยกเลิกร่างออร์เดอร์");
-            out.println("0. กลับเมนูหลัก (บันทึกร่างไว้ทำต่อได้)");
+            out.println("0. ทิ้งรายการและกลับเมนูหลัก (ไม่บันทึกร่าง)");
             int choice = number("เลือก", 0, 5);
-            if (choice == 0) return;
+            if (choice == 0) {
+                system.discardDraft(order);
+                out.println("ทิ้งออร์เดอร์ที่ยังไม่ชำระแล้ว กลับเมนูหลัก");
+                return;
+            }
             try {
                 switch (choice) {
                     case 1 -> {
-                        showProducts();
-                        out.println("0. ไอศกรีมเลือกภาชนะ/ขนาดและรสชาติ");
-                        int selected = number("เลือกหมายเลขสินค้า (0 = เลือกขนาดและรสไอศกรีม)", 0, system.products().size());
-                        if (selected == 0) addCustomIceCream(order);
-                        else order.addOrderItem(system.products().get(selected - 1), number("จำนวนสินค้า", 1, 10000));
+                        addCustomIceCream(order);
                     }
                     case 2 -> {
                         if (order.items().isEmpty()) throw new IllegalArgumentException("ไม่มีรายการให้ลบ");
@@ -139,7 +144,10 @@ public class ConsoleApp {
     }
     private void payment(Order order) {
         showOrder(order);
-        out.println("1. เงินสด  2. QR จำลอง  0. กลับ");
+        out.println("วิธีชำระเงิน");
+        out.println("1. เงินสด");
+        out.println("2. QR จำลอง");
+        out.println("0. กลับ");
         int method = number("วิธีชำระ", 0, 2);
         if (method == 0) return;
         BigDecimal received;
@@ -182,16 +190,20 @@ public class ConsoleApp {
             if (index == 0) return;
             Order order = system.orders().get(index - 1);
             showOrder(order);
-            out.println("1. เปิดร่าง/ชำระ  2. เริ่มจัดเตรียม  3. เตรียมเสร็จ  4. ส่งมอบ  5. ยกเลิก  0. กลับ");
-            int action = number("เลือกการทำงาน", 0, 5);
+            out.println("เลือกการทำงาน");
+            out.println("1. เปิดออร์เดอร์/ชำระเงิน");
+            out.println("2. เริ่มจัดเตรียม");
+            out.println("3. ส่งมอบ");
+            out.println("4. ยกเลิก");
+            out.println("0. กลับ");
+            int action = number("เลือก", 0, 4);
             try {
                 switch (action) {
                     case 0 -> {}
                     case 1 -> { order.require(Order.Status.WAITING_PAYMENT); editDraft(order); }
                     case 2 -> system.employee().prepareEmployeeProduct(system, order);
-                    case 3 -> system.employee().finishEmployeeProduct(system, order);
-                    case 4 -> { system.employee().deliverEmployeeProduct(system, order); out.println("ส่งมอบสำเร็จ ได้รับ " + order.earnedPoints() + " คะแนน"); }
-                    case 5 -> {
+                    case 3 -> { system.employee().deliverEmployeeProduct(system, order); out.println("ส่งมอบสำเร็จ ได้รับ " + order.earnedPoints() + " คะแนน"); }
+                    case 4 -> {
                         if (yes("ยืนยันยกเลิกและคืนเงิน " + money(order.paid()) + " บาท (QR คืนเงินจำลอง)")) {
                             order.cancelOrder(system, text("เหตุผลยกเลิก"));
                             out.println("ยกเลิกสำเร็จ คืนเงิน " + money(order.refund()) + " บาท คืนคะแนนที่ใช้และวัตถุดิบแล้ว");
@@ -207,7 +219,12 @@ public class ConsoleApp {
     private void members() {
         while (true) {
             title("สมาชิก — สมัครและแก้ไขผ่านพนักงานเคาน์เตอร์");
-            out.println("1. สมัครสมาชิก  2. ค้นหา/ตรวจคะแนน  3. แก้ไขข้อมูล  4. รายชื่อสมาชิก  5. ประวัติคะแนน  0. กลับ");
+            out.println("1. สมัครสมาชิก");
+            out.println("2. ค้นหา/ตรวจคะแนน");
+            out.println("3. แก้ไขข้อมูล");
+            out.println("4. รายชื่อสมาชิก");
+            out.println("5. ประวัติคะแนน");
+            out.println("0. กลับ");
             int action = number("เลือก", 0, 5);
             if (action == 0) return;
             try {
@@ -245,6 +262,7 @@ public class ConsoleApp {
     }
     private record SizeOption(String type, String size, int price, int maxFlavors, String container) {}
     private void addCustomIceCream(Order order) {
+        system.ensureIceCreamMenu();
         List<SizeOption> sizes = List.of(
                 new SizeOption("ถ้วย", "S", 29, 2, "ถ้วยไอศกรีม"), new SizeOption("ถ้วย", "M", 39, 3, "ถ้วยไอศกรีม"),
                 new SizeOption("ถ้วย", "M+", 49, 4, "ถ้วยไอศกรีม"), new SizeOption("ถ้วย", "L", 59, 5, "ถ้วยไอศกรีม"),
@@ -305,7 +323,9 @@ public class ConsoleApp {
     private void products() {
         while (true) {
             title("สินค้าและสูตร"); showProducts();
-            out.println("1. เพิ่มสินค้า  2. แก้ไขสินค้า/สูตร  0. กลับ");
+            out.println("1. เพิ่มสินค้า");
+            out.println("2. แก้ไขสินค้า/สูตร");
+            out.println("0. กลับ");
             int action = number("เลือก", 0, 2);
             if (action == 0) return;
             try {
@@ -340,7 +360,12 @@ public class ConsoleApp {
     private void ingredients() {
         while (true) {
             title("วัตถุดิบ"); showIngredients();
-            out.println("1. รับเข้ารายล็อต  2. ลดจำนวนพร้อมเหตุผล  3. ดูล็อต/ประวัติลด  4. แจ้งเตือน  5. เพิ่มชนิดวัตถุดิบ  0. กลับ");
+            out.println("1. รับเข้ารายล็อต");
+            out.println("2. ลดจำนวนพร้อมเหตุผล");
+            out.println("3. ดูล็อต/ประวัติลด");
+            out.println("4. แจ้งเตือน");
+            out.println("5. เพิ่มชนิดวัตถุดิบ");
+            out.println("0. กลับ");
             int action = number("เลือก", 0, 5);
             if (action == 0) return;
             try {
@@ -377,7 +402,12 @@ public class ConsoleApp {
     }
     private void sales() {
         title("รายงานยอดขาย / ต้นทุน / กำไรขั้นต้น");
-        out.println("1. ทั้งรอบ  2. เลือกช่วงวันที่  3. รายวัน  4. รายสัปดาห์  5. รายเดือน  0. กลับ");
+        out.println("1. ทั้งรอบ");
+        out.println("2. เลือกช่วงวันที่");
+        out.println("3. รายวัน");
+        out.println("4. รายสัปดาห์");
+        out.println("5. รายเดือน");
+        out.println("0. กลับ");
         int mode = number("เลือกรายงาน", 0, 5);
         if (mode == 0) return;
         LocalDate today = system.today(), start = today, end = today;

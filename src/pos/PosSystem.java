@@ -73,7 +73,7 @@ public class PosSystem implements Serializable {
         return ingredients.stream().filter(i -> i.name().equals(name)).findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("ไม่พบวัตถุดิบ " + name));
     }
-    private void ensureIceCreamMenu() {
+    public void ensureIceCreamMenu() {
         String[] flavors = {"คาราเมลแครก", "คุกกี้แอนด์ครีม", "ชีส", "นมข้นน้ำผึ้ง", "โยเกิร์ตสตรอเบอร์รี่ชีสเค้ก",
                 "มิ้นช็อคชิพ", "อูจิมัทฉะ", "นมเปรี้ยวปีโป้", "เชอร์รี่เบอร์รี่ชอร์เบย์", "มิกซ์แอปเปิ้ล",
                 "นมเมล่อน", "มอคค่าอัลมอนด์", "ช็อกโกแลต", "รัมเรซิ่น", "บลูเบอร์รี่โยเกิร์ต"};
@@ -119,6 +119,15 @@ public class PosSystem implements Serializable {
         Order o = new Order("O" + (orders.size() + 1), customer, employee, now()); orders.add(o); return o;
     }
     private void known(Order o) { if (!orders.contains(o)) throw new IllegalArgumentException("ไม่พบออร์เดอร์"); }
+    public void discardDraft(Order o) {
+        known(o);
+        o.require(Order.Status.WAITING_PAYMENT);
+        if (o.payment() != null) throw new IllegalArgumentException("ชำระแล้ว จึงทิ้งร่างไม่ได้");
+        orders.remove(o);
+        if (!(o.customer() instanceof Member)
+                && orders.stream().noneMatch(existing -> existing.customer() == o.customer()))
+            customers.remove(o.customer());
+    }
     public void pay(Order o, Order.Payment method, BigDecimal tendered, boolean qrConfirmed) {
         known(o); o.require(Order.Status.WAITING_PAYMENT);
         if (o.items().isEmpty()) throw new IllegalArgumentException("ออร์เดอร์ไม่มีสินค้า");
@@ -147,7 +156,9 @@ public class PosSystem implements Serializable {
     public void start(Order o) { known(o); o.require(Order.Status.WAITING_PREPARATION); o.transition(Order.Status.PREPARING); }
     public void ready(Order o) { known(o); o.require(Order.Status.PREPARING); o.transition(Order.Status.READY); }
     public void deliver(Order o) {
-        known(o); o.require(Order.Status.READY);
+        known(o);
+        if (o.status() != Order.Status.PREPARING && o.status() != Order.Status.READY)
+            throw new IllegalArgumentException("ต้องเริ่มจัดเตรียมก่อนส่งมอบ");
         int points = 0;
         if (o.customer() instanceof Member m) points = m.addPointsMember(o.net(), o.id(), "คะแนนจากยอดสุทธิเมื่อส่งมอบ", now());
         o.delivered(points);
