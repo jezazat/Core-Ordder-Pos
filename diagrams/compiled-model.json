@@ -1,0 +1,151 @@
+{
+  "Member": {
+    "name": "Member",
+    "thai": "สมาชิก",
+    "fields": [
+      "- memberId: String",
+      "- memberName: String",
+      "- memberPhone: String",
+      "- memberPointBalance: int",
+      "- memberPointHistory: List<PointTransaction>"
+    ],
+    "methods": [
+      "+ Member(String, String, String, String)",
+      "~ adjustMember(String, String): void",
+      "~ addPointsMember(BigDecimal, String, String, LocalDateTime): int",
+      "~ redeemPointsMember(int, String, String, LocalDateTime): void",
+      "~ returnPointsMember(int, String, String, LocalDateTime): void",
+      "+ getPointHistoryMember(): List<PointTransaction>"
+    ]
+  },
+  "Customer": {
+    "name": "Customer",
+    "thai": "ลูกค้า",
+    "fields": [
+      "- customerId: String"
+    ],
+    "methods": [
+      "+ Customer(String)",
+      "+ customerRegister(PosSystem, String, String): Member",
+      "+ customerOrder(PosSystem): Order",
+      "+ customerPayment(PosSystem, Order, Order.Payment, BigDecimal, boolean): void"
+    ]
+  },
+  "Employee": {
+    "name": "Employee",
+    "thai": "พนักงาน",
+    "fields": [
+      "- employeeId: String",
+      "- employeeName: String",
+      "- employeeRole: String"
+    ],
+    "methods": [
+      "+ Employee(String, String, String)",
+      "+ receiveEmployeeProduct(PosSystem, Customer): Order",
+      "+ recordEmployeeConfirmation(PosSystem, Order, Order.Payment, BigDecimal, boolean): void",
+      "+ prepareEmployeeProduct(PosSystem, Order): void",
+      "+ finishEmployeeProduct(PosSystem, Order): void",
+      "+ deliverEmployeeProduct(PosSystem, Order): void",
+      "+ saveEmployeeProduct(PosSystem, String, String, BigDecimal, boolean, Map<Ingredient, BigDecimal>): Product"
+    ]
+  },
+  "Order": {
+    "name": "Order",
+    "thai": "ออร์เดอร์",
+    "fields": [
+      "- orderId: String",
+      "- orderDateTime: LocalDateTime",
+      "- paidDateTime: LocalDateTime",
+      "- cancelledDateTime: LocalDateTime",
+      "- cancelReason: String",
+      "- customer: Customer",
+      "- employee: Employee",
+      "- orderItems: List<OrderItem>",
+      "- orderStatus: Order.Status",
+      "- requestedPoints: int",
+      "- earnedPoints: int",
+      "- paidAmount: BigDecimal",
+      "- refundAmount: BigDecimal",
+      "- receivedAmount: BigDecimal",
+      "- changeAmount: BigDecimal",
+      "- payment: Order.Payment",
+      "/ orderTotalAmount: BigDecimal",
+      "/ orderDiscountAmount: BigDecimal",
+      "/ orderNetAmount: BigDecimal",
+      "/ orderProducts: List<Product> (owned snapshots)"
+    ],
+    "methods": [
+      "~ Order(String, Customer, Employee, LocalDateTime)",
+      "+ calculateOrderTotal(): BigDecimal",
+      "+ totalCost(): BigDecimal",
+      "+ addOrderItem(Product, int): void",
+      "+ applyOrderDiscount(int): void",
+      "+ cancelOrder(PosSystem, String): void",
+      "+ updateOrderStatus(PosSystem, Order.Status): void"
+    ]
+  },
+  "Sales": {
+    "name": "Sales",
+    "thai": "รายงานยอดขาย",
+    "fields": [
+      "- salesId: String",
+      "- salesStartDate: LocalDate",
+      "- salesEndDate: LocalDate",
+      "- orders: List<Order>",
+      "- salesTotal: BigDecimal",
+      "- salesTotalCost: BigDecimal",
+      "- salesProfit: BigDecimal",
+      "- salesOrderCount: int",
+      "- summary: Sales.Summary"
+    ],
+    "methods": [
+      "+ Sales(String, LocalDate, LocalDate, List<Order>)",
+      "+ calculateSales(List<Order>): BigDecimal",
+      "+ calculateSalesProfit(): BigDecimal",
+      "+ getTopSellingProducts(int): Map<Product, Long>"
+    ]
+  },
+  "Product": {
+    "name": "Product",
+    "thai": "สินค้า",
+    "fields": [
+      "- productId: String",
+      "- productName: String",
+      "- productCategory: String",
+      "- productBasePrice: BigDecimal",
+      "- productIsAvailable: boolean",
+      "- recipeItems: List<RecipeItem>",
+      "- orderSnapshot: boolean"
+    ],
+    "methods": [
+      "+ Product(String, String, String, BigDecimal, boolean, Map<Ingredient, BigDecimal>)",
+      "+ getSalePrice(): BigDecimal",
+      "+ calculateCostProduct(LocalDate): BigDecimal",
+      "+ updateProductStatus(boolean): void",
+      "+ updateProduct(String, String, BigDecimal, boolean, Map<Ingredient, BigDecimal>): void"
+    ]
+  },
+  "Ingredient": {
+    "name": "Ingredient",
+    "thai": "วัตถุดิบ",
+    "fields": [
+      "- ingredientId: String",
+      "- ingredientName: String",
+      "- ingredientUnit: String",
+      "- ingredientNormalStock: BigDecimal",
+      "- lots: List<IngredientLot>",
+      "- adjustments: List<Ingredient.Adjustment>",
+      "/ ingredientStockQuantity: BigDecimal (date)",
+      "/ ingredientReorderPoint: BigDecimal"
+    ],
+    "methods": [
+      "+ Ingredient(String, String, String, BigDecimal)",
+      "+ ingredientReorderPoint(): BigDecimal",
+      "+ addIngredient(String, LocalDate, LocalDate, BigDecimal, BigDecimal, String): void",
+      "+ getAvailableQuantityIngredient(LocalDate): BigDecimal",
+      "+ isLowIngredient(LocalDate): boolean",
+      "+ isNearExpiryIngredient(LocalDate, int): boolean",
+      "+ reduceIngredient(String, BigDecimal, String, LocalDate): void"
+    ]
+  }
+}

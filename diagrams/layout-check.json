@@ -1,0 +1,16 @@
+[
+  {
+    "page": "overview",
+    "width": 2260,
+    "height": 1740,
+    "cards": 7,
+    "overflow": []
+  },
+  {
+    "page": "details",
+    "width": 2400,
+    "height": 2166,
+    "cards": 7,
+    "overflow": []
+  }
+]

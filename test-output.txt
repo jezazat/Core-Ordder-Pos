@@ -1,0 +1,52 @@
+PASS cash/change and payment-only stock
+PASS incomplete cash does not change state
+PASS QR requires confirmation and exact amount
+PASS draft/invalid transitions and empty checkout
+PASS discount blocks/funds/order limits
+PASS guest cannot spend or receive member points
+PASS points on delivery/floor/single credit
+PASS amount below 10 earns zero
+PASS full points payment with zero cash
+PASS points rechecked against another paid draft
+PASS cancel refunds net and restores original FIFO lots once
+PASS QR cancel retains refund ledger
+PASS cancel forbidden after preparation begins
+PASS FIFO follows receipt not expiry
+PASS expired stock skipped, expiry day usable
+PASS all ingredient validation is atomic
+PASS shared ingredient quantities aggregated across items
+PASS low-stock boundary excludes expired quantity
+PASS expiry alerts at 3/0/-1 but not 4 days
+PASS receipt/adjustment validation and reason history
+PASS member duplicate and atomic edit
+PASS product snapshots and recipe validation
+PASS remove item preserves valid discount
+PASS sales ledger includes paid orders and reversals only
+PASS Thailand date independent of host timezone
+PASS console malformed menu/quantity/money recovery
+PASS console sale/delivery/Thai receipt and summary
+PASS console unconfirmed QR preserves draft
+PASS console member registration/edit/search
+PASS console product creation/edit and ingredient menus
+PASS console EOF exits cleanly
+PASS fresh session resets demo data
+PASS point history reconciles initial/spend/earn and timestamps
+PASS cancel audit returns exact points once
+PASS failed stock/cash/QR creates no points audit
+PASS read-only history and zero points are not fake events
+PASS FIFO unit costs allocated across shared order items
+PASS cost preview does not reserve or consume lots
+PASS historical cost unaffected by later product and receipt changes
+PASS cross-day refunds are recorded in refund period
+PASS refund to expired original lot remains unusable
+PASS report boundaries empty period and invalid range
+PASS top selling net returns tie order and limit
+PASS aggregation reports share orders and remain independently usable
+PASS actors register/order/pay and prevent wrong customer payment
+PASS reason required and status changes cannot bypass workflow
+PASS category/status and lot cost validation preserve state
+PASS console point history and cancellation reason
+PASS console date range cost profit and ranking
+PASS negative demo initialization cannot corrupt history
+PASS seven-card Order-Product composition owns independent immutable snapshots
+ALL 51 TESTS PASSED
