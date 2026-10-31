@@ -175,7 +175,7 @@ public class ModelTests {
         });
         test("console date range cost profit and ranking", () -> {
             Fixture f = new Fixture(); Order o = f.order(3); f.pay(o);
-            String output = console(f.s, "6\n2\n2026-10-07\n2026-10-07\n0\n");
+            String output = console(f.s, "5\n2\n2026-10-07\n2026-10-07\n0\n");
             check(output.contains("ต้นทุนวัตถุดิบสุทธิ 13.00") && output.contains("กำไรขั้นต้น 92.00") && output.contains("3 หน่วย"), "report console");
         });
         test("negative demo initialization cannot corrupt history", () -> {

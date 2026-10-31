@@ -229,7 +229,7 @@ public class PosTests {
         });
         test("console sale/delivery/Thai receipt and summary", () -> {
             Fixture f = new Fixture();
-            String output = console(f.s, "1\n1\n0812345678\n1\n2\n1\n1\n1\n3\n10\n4\n1\n100\n1\n2\n1\n2\n1\n3\n0\n6\n1\n0\n");
+            String output = console(f.s, "1\n1\n0812345678\n1\n2\n1\n1\n1\n3\n10\n4\n1\n100\n1\n2\n1\n2\n1\n3\n0\n5\n1\n0\n");
             check(output.contains("เงินทอน 71.00") && output.contains("ส่งมอบสำเร็จ ได้รับ 2 คะแนน") && output.contains("ยอดขายสุทธิ 29.00"), "end-to-end output");
             check(f.m.points() == 92 && f.s.orders().get(0).status() == Order.Status.DELIVERED, "end-to-end state");
         });
@@ -244,10 +244,9 @@ public class PosTests {
             String output = console(f.s, "3\n1\nสมาชิกใหม่\n0833333333\n3\n0833333333\nชื่อแก้ไข\n0844444444\n2\n0844444444\n4\n0\n0\n");
             check(f.s.findMember("0844444444").name().equals("ชื่อแก้ไข") && output.contains("ชื่อแก้ไข"), "member menu");
         });
-        test("console product creation/edit and ingredient menus", () -> {
+        test("console ingredient menus", () -> {
             Fixture f = new Fixture();
-            String output = console(f.s, "4\n1\nสินค้าใหม่\nไอศกรีม\n20\n1\n1\n1\n0\n2\n2\nแก้สินค้า\nไอศกรีมใหม่\n25\n0\n0\n0\n5\n1\n1\nextra\n2026-10-07\n2026-10-20\n5\n3\nรับทดสอบ\n2\n1\nextra\n1\nเสีย\n3\n1\n4\n5\nนม\nมล.\n1000\n0\n0\n");
-            check(f.s.products().size() == 2 && f.s.products().get(1).name().equals("แก้สินค้า") && !f.s.products().get(1).active(), "product menu");
+            String output = console(f.s, "4\n1\n1\nextra\n2026-10-07\n2026-10-20\n5\n3\nรับทดสอบ\n2\n1\nextra\n1\nเสีย\n3\n1\n4\n5\nนม\nมล.\n1000\n0\n0\n");
             check(f.s.ingredients().size() == 3 && f.ice.adjustments().size() == 1 && output.contains("ใกล้หมดอายุ"), "ingredient menu");
             eq(f.ice.usable(DAY), "104");
         });

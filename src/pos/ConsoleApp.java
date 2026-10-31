@@ -83,16 +83,15 @@ public class ConsoleApp {
                 out.println("  2. ดูและจัดการออร์เดอร์");
                 out.println("ข้อมูลร้าน");
                 out.println("  3. สมาชิก");
-                out.println("  4. เมนูสินค้าและสูตร");
-                out.println("  5. วัตถุดิบและสต็อก");
-                out.println("  6. รายงานยอดขาย");
+                out.println("  4. วัตถุดิบและสต็อก");
+                out.println("  5. รายงานยอดขาย");
                 out.println("  0. ปิดโปรแกรม (บันทึกข้อมูลแล้ว)");
-                int menu = number("เลือกเมนู", 0, 6);
+                int menu = number("เลือกเมนู", 0, 5);
                 if (menu == 0) { out.println("ปิดโปรแกรมแล้ว ข้อมูลบันทึกไว้ในเครื่อง"); return; }
                 try {
                     switch (menu) {
                         case 1 -> sale(); case 2 -> orders(); case 3 -> members();
-                        case 4 -> products(); case 5 -> ingredients(); case 6 -> sales();
+                        case 4 -> ingredients(); case 5 -> sales();
                         default -> throw new AssertionError();
                     }
                 } catch (IllegalArgumentException | ArithmeticException e) { out.println("ทำรายการไม่ได้: " + e.getMessage()); }
