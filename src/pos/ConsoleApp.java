@@ -359,7 +359,7 @@ public class ConsoleApp {
     private void ingredients() {
         while (true) {
             title("วัตถุดิบ"); showIngredients();
-            out.println("1. รับเข้ารายล็อต");
+            out.println("1. เพิ่มล็อต");
             out.println("2. ลดจำนวนพร้อมเหตุผล");
             out.println("3. ดูล็อต/ประวัติลด");
             out.println("4. แจ้งเตือน");
