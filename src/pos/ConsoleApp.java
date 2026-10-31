@@ -68,13 +68,22 @@ public class ConsoleApp {
     public void run() {
         title("Core Order POS");
         out.println("พนักงาน A | รหัส A001");
+        out.println("ขายสินค้า: เลือก 1 → เลือกลูกค้า → เพิ่มสินค้า → ชำระเงิน");
         alerts();
         try {
             while (true) {
                 title("เมนูหลัก");
-                out.println("1. ขายสินค้า / สร้างออร์เดอร์\n2. จัดการออร์เดอร์\n3. สมาชิก\n4. สินค้าและสูตร\n5. วัตถุดิบ\n6. ยอดขาย\n0. ออกจากโปรแกรม");
+                out.println("งานขาย");
+                out.println("  1. เริ่มขายสินค้า");
+                out.println("  2. ดูและจัดการออร์เดอร์");
+                out.println("ข้อมูลร้าน");
+                out.println("  3. สมาชิก");
+                out.println("  4. เมนูสินค้าและสูตร");
+                out.println("  5. วัตถุดิบและสต็อก");
+                out.println("  6. รายงานยอดขาย");
+                out.println("  0. ปิดโปรแกรม (บันทึกข้อมูลแล้ว)");
                 int menu = number("เลือกเมนู", 0, 6);
-                if (menu == 0) { out.println("จบการทำงาน ข้อมูลรอบนี้ถูกล้างเมื่อปิดโปรแกรม"); return; }
+                if (menu == 0) { out.println("ปิดโปรแกรมแล้ว ข้อมูลบันทึกไว้ในเครื่อง"); return; }
                 try {
                     switch (menu) {
                         case 1 -> sale(); case 2 -> orders(); case 3 -> members();
@@ -90,7 +99,8 @@ public class ConsoleApp {
     private void sale() {
         title("ขายสินค้า");
         Member member = null;
-        if (yes("เป็นสมาชิกหรือไม่")) { member = lookupMember(); showMember(member); }
+        out.println("เลือกลูกค้า: สมาชิกใช้คะแนนสะสมได้; ลูกค้าทั่วไปเลือกไม่เป็นสมาชิก");
+        if (yes("ลูกค้าเป็นสมาชิกหรือไม่")) { member = lookupMember(); showMember(member); }
         Order order = system.employee().receiveEmployeeProduct(system, member == null ? system.guest() : member);
         out.println("สร้างร่าง " + order.id() + " แล้ว");
         editDraft(order);
@@ -98,7 +108,12 @@ public class ConsoleApp {
     private void editDraft(Order order) {
         while (order.status() == Order.Status.WAITING_PAYMENT) {
             showOrder(order);
-            out.println("1. เพิ่มสินค้า  2. ลบรายการ  3. ระบุคะแนน  4. ชำระเงิน  5. ยกเลิกร่าง  0. เก็บร่างและกลับ");
+            out.println("1. เพิ่มสินค้า");
+            out.println("2. ลบสินค้าออกจากรายการ");
+            out.println("3. ใช้คะแนนสะสม");
+            out.println("4. ชำระเงิน");
+            out.println("5. ยกเลิกร่างออร์เดอร์");
+            out.println("0. กลับเมนูหลัก (บันทึกร่างไว้ทำต่อได้)");
             int choice = number("เลือก", 0, 5);
             if (choice == 0) return;
             try {
@@ -106,7 +121,7 @@ public class ConsoleApp {
                     case 1 -> {
                         showProducts();
                         out.println("0. ไอศกรีมเลือกภาชนะ/ขนาดและรสชาติ");
-                        int selected = number("ลำดับสินค้า", 0, system.products().size());
+                        int selected = number("เลือกหมายเลขสินค้า (0 = เลือกขนาดและรสไอศกรีม)", 0, system.products().size());
                         if (selected == 0) addCustomIceCream(order);
                         else order.addOrderItem(system.products().get(selected - 1), number("จำนวนสินค้า", 1, 10000));
                     }
