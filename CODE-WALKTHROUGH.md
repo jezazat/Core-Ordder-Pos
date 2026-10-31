@@ -94,7 +94,7 @@ flowchart LR
 
 การตรวจในหน้าจอช่วยให้กรอกง่าย ส่วน validation สำคัญซ้ำอยู่ใน model/service เพื่อไม่ให้ข้ามกติกาธุรกิจได้
 
-เมนูหลักใน run() dispatch ไปยัง sale(), orders(), members(), ingredients() หรือ sales() ตามหมายเลข 1–5 หลังเมนูย่อยจบ จะเรียก system.save(DATA_FILE)
+เมนูหลักใน run() dispatch ไปยัง sale(), orders(), members(), ingredients() หรือ sales() ตามหมายเลข 1–5 การบันทึกไฟล์ข้อมูลอยู่ใน ConsoleApp.main() หลังออกจาก run() ตามปกติ; การเรียก ConsoleApp.run() โดยตรงสำหรับชุดทดสอบจึงไม่เขียนทับไฟล์ข้อมูลของเครื่อง
 
 ## 5. ลำดับสร้างไอศกรีมแบบเลือกเอง
 
@@ -194,7 +194,7 @@ ConsoleApp.sales() เลือกช่วงวันแล้วเรีย�
 
 ## 11. การบันทึกข้อมูล
 
-PosSystem และ model ที่เป็นส่วนหนึ่งของ object graph implement Serializable. save() ใช้ ObjectOutputStream เขียน graph ทั้งชุดลง data/pos-data.bin; Java serialization เก็บการอ้างอิงร่วมระหว่าง Order, Product, Ingredient และล็อต
+PosSystem และ model ที่เป็นส่วนหนึ่งของ object graph implement Serializable. save() serialize ลงไฟล์ชั่วคราวก่อน แล้วแทนที่ไฟล์ข้อมูลเดิม โดยเก็บไฟล์เดิมไว้ระหว่างย้ายเพื่อคืนกลับได้ถ้าการแทนที่ล้มเหลว; Java serialization เก็บการอ้างอิงร่วมระหว่าง Order, Product, Ingredient และล็อต ไฟล์ข้อมูลขนาด 0 ไบต์จะถูกย้ายเป็นไฟล์สำรอง .bak แล้วเริ่มจากข้อมูลสาธิต เพราะไฟล์ว่างไม่มี object graph ให้กู้คืน
 
 Clock เป็น transient จึงไม่ serialize; readObject() คืน clock เขตเวลา Asia/Bangkok หลังโหลดข้อมูล loadOrDemo() โหลดไฟล์เดิม หรือสร้าง PosSystem.demo() หากยังไม่มีไฟล์ จากนั้นเรียก ensureIceCreamMenu() เพื่อเติมรส/ภาชนะให้ข้อมูลเก่าที่ขาดรายการ
 

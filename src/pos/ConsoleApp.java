@@ -19,10 +19,18 @@ public class ConsoleApp {
     private static final java.nio.file.Path DATA_FILE = java.nio.file.Path.of("data", "pos-data.bin");
     public static void main(String[] args) {
         try {
+            boolean emptyDataFile = java.nio.file.Files.exists(DATA_FILE) && java.nio.file.Files.size(DATA_FILE) == 0;
             PosSystem system = PosSystem.loadOrDemo(DATA_FILE);
+            if (emptyDataFile) {
+                System.err.println("ไฟล์ข้อมูลเดิมว่าง ถูกสำรองเป็น .bak และเริ่มข้อมูลสาธิตใหม่");
+                system.save(DATA_FILE);
+            }
             new ConsoleApp(system, System.in, System.out).run();
             system.save(DATA_FILE);
-        } catch (IOException e) { System.err.println("เปิด/บันทึกข้อมูลไม่ได้: " + e.getMessage()); }
+        } catch (IOException e) {
+            String message = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+            System.err.println("เปิด/บันทึกข้อมูลไม่ได้: " + message);
+        }
     }
     private String text(String prompt) {
         out.print(prompt + ": "); out.flush();
@@ -95,7 +103,6 @@ public class ConsoleApp {
                         default -> throw new AssertionError();
                     }
                 } catch (IllegalArgumentException | ArithmeticException e) { out.println("ทำรายการไม่ได้: " + e.getMessage()); }
-                try { system.save(DATA_FILE); } catch (IOException e) { out.println("บันทึกข้อมูลไม่ได้: " + e.getMessage()); }
             }
         } catch (EndOfInput e) { out.println(); out.println("สิ้นสุดข้อมูลนำเข้า จบการทำงาน"); }
     }
@@ -361,7 +368,7 @@ public class ConsoleApp {
             title("วัตถุดิบ"); showIngredients();
             out.println("1. เพิ่มล็อต");
             out.println("2. ลดจำนวนพร้อมเหตุผล");
-            out.println("3. ดูล็อต/ประวัติลด");
+            out.println("3. ดูล็อต ประวัติเพิ่มและลด");
             out.println("4. แจ้งเตือน");
             out.println("5. เพิ่มชนิดวัตถุดิบ");
             out.println("0. กลับ");
@@ -386,8 +393,11 @@ public class ConsoleApp {
                     }
                     case 3 -> {
                         Ingredient i = chooseIngredient(); showLots(i);
-                        out.println("ประวัติการลดสต็อกด้วยมือ:");
-                        i.adjustments().forEach(a -> out.println(a.date() + " | " + a.lotId() + " | ลด " + a.quantity() + " | " + a.reason()));
+                        out.println("ประวัติเพิ่มสต็อก:");
+                        i.lots().forEach(l -> out.println(l.received() + " | " + l.id() + " | เพิ่ม " + l.quantity() + " " + i.unit() + " | " + l.receiveReason()));
+                        out.println("ประวัติลดสต็อก:");
+                        if (i.adjustments().isEmpty()) out.println("  ยังไม่มีประวัติลด");
+                        else i.adjustments().forEach(a -> out.println(a.date() + " | " + a.lotId() + " | ลด " + a.quantity() + " " + i.unit() + " | " + a.reason()));
                     }
                     case 4 -> alerts();
                     case 5 -> {

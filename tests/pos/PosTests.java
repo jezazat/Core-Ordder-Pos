@@ -273,13 +273,33 @@ public class PosTests {
         test("POS state persists with linked member, order and stock objects", () -> {
             try {
                 Fixture f = new Fixture(); Order o = f.order(1); f.delivered(o);
-                java.nio.file.Path file = java.nio.file.Files.createTempFile("pos-persist", ".bin");
+                java.nio.file.Path folder = java.nio.file.Files.createTempDirectory(java.nio.file.Path.of("build"), "pos-persist");
+                java.nio.file.Path file = folder.resolve("pos-data.bin");
                 try {
-                    f.s.save(file); PosSystem loaded = PosSystem.loadOrDemo(file);
+                    f.s.save(file); PosSystem loaded = PosSystem.loadOrDemo(file); loaded.save(file);
+                    loaded = PosSystem.loadOrDemo(file);
                     check(loaded.orders().size() == 1 && loaded.members().get(0).points() == 103, "loaded order/member state");
                     eq(loaded.ingredients().get(0).usable(DAY), "99");
                     check(loaded.orders().get(0).items().get(0).product() == loaded.products().get(0), "linked product reference");
-                } finally { java.nio.file.Files.deleteIfExists(file); }
+                } finally { java.nio.file.Files.deleteIfExists(file); java.nio.file.Files.deleteIfExists(folder); }
+            } catch (java.io.IOException e) { throw new AssertionError(e); }
+        });
+        test("empty data file is backed up and replaced by a valid demo state", () -> {
+            try {
+                java.nio.file.Path folder = java.nio.file.Files.createTempDirectory(java.nio.file.Path.of("build"), "pos-empty-data");
+                java.nio.file.Path file = folder.resolve("pos-data.bin");
+                try {
+                    java.nio.file.Files.createFile(file);
+                    PosSystem recovered = PosSystem.loadOrDemo(file);
+                    check(!java.nio.file.Files.exists(file) && recovered.members().size() == 1, "empty file was not backed up");
+                    recovered.save(file);
+                    check(PosSystem.loadOrDemo(file).members().size() == 1, "recovered state did not load");
+                } finally {
+                    try (var files = java.nio.file.Files.list(folder)) {
+                        files.forEach(path -> { try { java.nio.file.Files.deleteIfExists(path); } catch (java.io.IOException e) { throw new java.io.UncheckedIOException(e); } });
+                    }
+                    java.nio.file.Files.deleteIfExists(folder);
+                }
             } catch (java.io.IOException e) { throw new AssertionError(e); }
         });
         passed += ModelTests.run();

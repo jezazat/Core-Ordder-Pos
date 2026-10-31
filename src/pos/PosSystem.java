@@ -24,6 +24,11 @@ public class PosSystem implements Serializable {
     }
     public static PosSystem loadOrDemo(Path file) throws IOException {
         if (!Files.exists(file)) return demo();
+        if (Files.size(file) == 0) {
+            String stamp = LocalDateTime.now(ZoneId.of("Asia/Bangkok")).format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+            Files.move(file, file.resolveSibling(file.getFileName() + ".empty-" + stamp + "-" + UUID.randomUUID() + ".bak"));
+            return demo();
+        }
         try (ObjectInputStream in = new ObjectInputStream(Files.newInputStream(file))) {
             Object value = in.readObject();
             if (!(value instanceof PosSystem system)) throw new IOException("ไฟล์ข้อมูล POS ไม่ถูกต้อง");
@@ -33,7 +38,22 @@ public class PosSystem implements Serializable {
     }
     public void save(Path file) throws IOException {
         Files.createDirectories(file.toAbsolutePath().getParent());
-        try (ObjectOutputStream out = new ObjectOutputStream(Files.newOutputStream(file))) { out.writeObject(this); }
+        Path temporary = file.resolveSibling(file.getFileName() + ".tmp-" + UUID.randomUUID());
+        Path previous = file.resolveSibling(file.getFileName() + ".previous-" + UUID.randomUUID());
+        boolean backedUp = false;
+        try {
+            try (ObjectOutputStream out = new ObjectOutputStream(Files.newOutputStream(temporary))) { out.writeObject(this); }
+            if (Files.exists(file)) { Files.move(file, previous); backedUp = true; }
+            try { Files.move(temporary, file, StandardCopyOption.ATOMIC_MOVE); }
+            catch (AtomicMoveNotSupportedException e) { Files.move(temporary, file); }
+            if (backedUp) Files.deleteIfExists(previous);
+        } catch (IOException e) {
+            if (backedUp && !Files.exists(file)) Files.move(previous, file);
+            throw e;
+        } finally {
+            Files.deleteIfExists(temporary);
+            if (Files.exists(file)) Files.deleteIfExists(previous);
+        }
     }
     public LocalDate today() { return LocalDate.now(clock); }
     public LocalDateTime now() { return LocalDateTime.now(clock); }
